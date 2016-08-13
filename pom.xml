@@ -1,0 +1,121 @@
+<!--
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!-- [START pom] -->
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <packaging>war</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <groupId>org.lastresponders.appengine</groupId>
+  <artifactId>lastresponders-tracker</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <type>jar</type>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-1.0-sdk</artifactId>
+      <version>${appengine.sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>${servlet.api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-servlet</artifactId>
+      <version>${guice.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>${guice.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.ext</groupId>
+      <artifactId>jersey-mvc-jsp</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.ext</groupId>
+      <artifactId>jersey-mvc-freemarker</artifactId>
+      <version>${jersey.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+<dependency>
+  <groupId>org.glassfish.jersey.media</groupId>
+  <artifactId>jersey-media-json-jackson</artifactId>
+  <version>${jersey.version}</version>
+  <scope>runtime</scope>
+</dependency>
+
+  </dependencies>
+  <properties>
+    <appengine.sdk.version>1.9.38</appengine.sdk.version>
+    <appengine.app.version>1</appengine.app.version>
+    <project.http.version>1.19.0</project.http.version>
+    <project.oauth.version>1.19.0</project.oauth.version>
+    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.plugin.version>2.0.9.111.v20160525</maven.plugin.version>
+    <jersey.version>2.5.1</jersey.version>
+    <guice.version>3.0</guice.version>
+    <servlet.api.version>2.5</servlet.api.version>
+  </properties>
+
+  <build>
+    <!-- for hot reload of the web application -->
+    <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>3.3</version>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <!-- Parent POM defines ${appengine.sdk.version} (updates frequently). -->
+      <plugin>
+        <groupId>com.google.appengine</groupId>
+        <artifactId>appengine-maven-plugin</artifactId>
+        <version>${appengine.sdk.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+<!-- [END pom] -->
