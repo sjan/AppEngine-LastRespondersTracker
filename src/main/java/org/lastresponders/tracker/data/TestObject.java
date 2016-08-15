@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public  class TestObject implements Serializable {
 	/**
-	 * 
+	 * JJust a dummy object
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -16,9 +16,9 @@ public  class TestObject implements Serializable {
 	
 	private String string;
 
-	public TestObject() {		
+	public TestObject() {
+		
 	}
-
 	
 	public TestObject(String string2, Date time) {
 		this.string = string2;
