@@ -6,6 +6,9 @@
 	http://www.springframework.org/schema/context/spring-context-3.2.xsd">
 
 	<context:component-scan base-package="org.lastresponders.tracker.controller" />
-	<bean id="testService" class="org.lastresponders.tracker.service.TestService"/>
 	<bean id="journeyService" class="org.lastresponders.tracker.service.JourneyService"/>	
+	<bean id="pollingService" class="org.lastresponders.tracker.service.PollingService"/>	
+	<bean id="delormeAdapter" class="org.lastresponders.tracker.adapter.DelormeAdapter"/>
+	<bean id="googleDataStore" class="org.lastresponders.tracker.store.GoogleDataStore"/>
+	
 </beans>
