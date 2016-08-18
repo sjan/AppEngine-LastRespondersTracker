@@ -14,6 +14,10 @@ import javax.inject.Inject;
 
 import org.lastresponders.tracker.adapter.DelormeAdapter;
 import org.lastresponders.tracker.data.TripPosition;
+import org.lastresponders.tracker.data.TripStatus;
+import org.lastresponders.tracker.store.DataCache;
+import org.lastresponders.tracker.store.GoogleDataStore;
+
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 public class JourneyService {
@@ -30,6 +34,11 @@ public class JourneyService {
 
 	@Inject
 	DelormeAdapter delormeAdapter;
+
+	@Inject
+	DataCache dataCache;
+
+	
 
 	public List<TripPosition> plannedRoute() {
 		List<TripPosition> ret = new ArrayList<TripPosition>();
@@ -72,17 +81,20 @@ public class JourneyService {
 		return ret;
 	}
 
-	public List<TripPosition> progressRoute() {
-		List<TripPosition> ret = new ArrayList<TripPosition>();
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(2016, 8, 9);
-		Date d1 = calendar.getTime();
-		calendar = Calendar.getInstance();
-		calendar.set(2016, 8, 11);
-		Date d2 = calendar.getTime();
-
-		ret = delormeAdapter.callDelorme("StephenJan", d1, d2);
-
-		return ret;
+	public List<TripPosition> progressRoute(String journeyId) {
+		return dataCache.progressRoute(journeyId);		
 	}
+
+	public TripPosition progressPosition(String journeyId) {
+		return dataCache.getLastPosition(journeyId);		
+	}
+
+	public TripStatus plannedStatus(String journeyId) {
+		return dataCache.plannedStatus(journeyId);
+	}
+
+	public TripStatus progressStatus(String journeyId) {
+		return dataCache.progressStatus(journeyId);
+	}
+	
 }

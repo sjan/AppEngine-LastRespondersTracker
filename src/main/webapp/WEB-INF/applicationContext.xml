@@ -10,5 +10,8 @@
 	<bean id="pollingService" class="org.lastresponders.tracker.service.PollingService"/>	
 	<bean id="delormeAdapter" class="org.lastresponders.tracker.adapter.DelormeAdapter"/>
 	<bean id="googleDataStore" class="org.lastresponders.tracker.store.GoogleDataStore"/>
+	<bean id="dataCache" class="org.lastresponders.tracker.store.DataCache"/>
+	<bean id="googleSheetData" class="org.lastresponders.tracker.store.GoogleSheetData"/>
+	
 	
 </beans>

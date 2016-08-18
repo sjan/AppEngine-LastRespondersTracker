@@ -42,3 +42,7 @@ target/
 .classpath
 .project
 .settings/
+
+# certificate
+####################
+*ca.json

@@ -29,7 +29,6 @@ import de.micromata.opengis.kml.v_2_2_0.TimeStamp;
 
 public class DelormeAdapter {
 	private static final Logger log = Logger.getLogger(DelormeAdapter.class.getName());
-
 	public static String DELORME_URL = "https://share.delorme.com";
 	public static String DELORME_PATH = "feed/share/";
 

@@ -1,51 +1,122 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script type="text/javascript"> var routeCoordinates = [];var map;</script>
+<style>
+   #wrapper { position: relative; }
+   #infoContainer { position: absolute; top: 10px; z-index: 99; height: 8em; opacity: 0.8; background-color:white; width: 100vw; }
+   #infoLabel { display:block; width: 100vw; margin-top: 10px; float:left; height: 2em;  text-align: center; display:table-cell; vertical-align: middle; font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; font-size:large;}
+   #infoProgress  { color:#3366ff ;  display:block; float:left; width: 50vw; height: 100%;    text-align: center; display:table-cell; vertical-align: middle; font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; font-size:large;}
+   #infoPlanned  { display:block; float:left;  width: 50vw; height: 100%;  text-align: center; display:table-cell; vertical-align: middle; font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; font-size:large;}
+</style>
+
+  <script type="text/javascript"> 
+  	var routeCoordinates = [];
+  	var progressCoordinates = [];
+  	var map;
+  	var oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
+  	var JOURNEY_START_DATE = new Date(2016,7,24);
+	var TODAY = new Date();
+	var diffDay = Math.round((TODAY.getTime() - JOURNEY_START_DATE.getTime())/(oneDay));
+	var MAP_PIN = 'M0-48c-9.8 0-17.7 7.8-17.7 17.4 0 15.5 17.7 30.6 17.7 30.6s17.7-15.4 17.7-30.6c0-9.6-7.9-17.4-17.7-17.4z';
+	var daycount = 0;
+	
+	if(diffDay < 0) {
+		daycount = 0;
+	} else {
+		daycount = diffDay;
+	}
+
+  </script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      //load page content data
-      //set page state
       $.ajax({
           type: "GET",
           dataType: "json",
           crossDomain:"true",
           url: "/rest/journey/plannedRoute",
           success: function(array){
-            //now
-            var daycount = 10;
-
             for(i = 0;i< array.length ; i++) {
               if(i === daycount) {
                  nowPosition = {lat : parseFloat(array[i].latitude), lng : parseFloat(array[i].longitude) };
               }
               routeCoordinates.push({lat : parseFloat(array[i].latitude), lng : parseFloat(array[i].longitude) });
             }
-          //  console.log(JSON.stringify(routeCoordinates));
 
             var flightPath = new google.maps.Polyline({
               path: routeCoordinates,
               geodesic: true,
               strokeColor: '#686868',
-              strokeOpacity: 070,
+              strokeOpacity: 0.70,
               strokeWeight: 4
             });
             flightPath.setMap(map);
 
-            var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + 686868,
-        new google.maps.Size(21, 34),
-        new google.maps.Point(0,0),
-        new google.maps.Point(10, 34));
-
-
             var marker = new google.maps.Marker({
-              position: nowPosition,
-              map: map,
-              title: 'Hello World!',
-              icon: pinImage
+	            position: nowPosition,
+	            map: map,
+	            icon: {
+					path: MAP_PIN,
+					fillColor: '#686868',
+					fillOpacity: .7,
+					strokeWeight: 2,
+					strokeColor: '#FFFFFF',
+				}
+            });
+            
+            map.setCenter(marker.getPosition());
+
+          },
+          error: function(data) {
+            console.log("fail function " + JSON.stringify(data));
+         }
+     });
+     
+     $.ajax({
+          type: "GET",
+          dataType: "json",
+          crossDomain:"true",
+          url: "/rest/journey/progressRoute",
+          success: function(array){
+            for(i = 0;i< array.length ; i++) {
+              progressCoordinates.push({lat : parseFloat(array[i].latitude), lng : parseFloat(array[i].longitude) });
+            }
+            
+			var progressPath = new google.maps.Polyline({
+              path: progressCoordinates ,
+              geodesic: true,
+              strokeColor: '#3366ff',
+              strokeOpacity: 1,
+              strokeWeight: 4
+            });
+            progressPath.setMap(map);
+            
+                 var marker = new google.maps.Marker({
+	            position: progressCoordinates[0],
+	            map: map,
+	            label: "A",
+	            icon: {
+					path: MAP_PIN,
+					fillColor: '#3366ff',
+					fillOpacity: .9,
+					strokeWeight: 2,
+					strokeColor: '#FFFFFF',
+				}
             });
 
+          },
+          error: function(data) {
+            console.log("fail function " + JSON.stringify(data));
+         }
+     });
+     
+     $.ajax({
+          type: "GET",
+          dataType: "json",
+          crossDomain:"true",
+          url: "/rest/journey/plannedStatus",
+          success: function(data){
+            $('#infoPlanned').html("PLAN" + "<br /> " + data["distance"] + " miles");
           },
           error: function(data) {
             console.log("fail function " + JSON.stringify(data));
@@ -54,23 +125,34 @@
    }
  )
  </script>
-
-
 </head>
 
   <body>
-  	<div id="googleMap" style="width: 100%; height: 700px;"></div>
+  <div id="wrapper">
+  	<div id="infoContainer">
+  		<div id="infoLabel">Day X</div>
+  		<div id="infoProgress" >PROGRESS <br>0 miles</div>
+  		<div id="infoPlanned">PLAN<br>0 miles</div>  			
+  	</div>
+  	<div id="googleMap" style="width: 100vw; height: 100vh;"></div>
     <script>
       function initMap() {
         var mapProp = {
           center:new google.maps.LatLng(51.508742,-0.120850),
-          zoom:5,
+          zoom:4,
           mapTypeId:google.maps.MapTypeId.ROADMAP
         };
         map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
       }
+      
+      if(diffDay < 0) {
+		$('#infoLabel').text((-diffDay)  + " Days until launch");
+	  } else {
+		$('#infoLabel').text("Day " + daycount);				
+	  }
+	
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCciPUBCbLiRVE6Vf_TbVJrtVUSLvtSvuU&callback=initMap"></script>
-
+	</div>
   </body>
 </html>
