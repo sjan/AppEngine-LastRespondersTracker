@@ -38,7 +38,7 @@ public class GoogleSheetData {
 		return response;		
 	}
 	
-	public List<TripPosition> extractPlannedRoute(ValueRange valueRange) {
+	public static List<TripPosition> extractPlannedRoute(ValueRange valueRange) {
 		log.info("extractPlannedRoute");
 		List<TripPosition> ret = new ArrayList<TripPosition>();
 
@@ -66,7 +66,7 @@ public class GoogleSheetData {
 		return ret;
 	}
 	
-	public TripStatus extractPlannedStatus(ValueRange valueRange, Date date) {
+	public static TripStatus extractPlannedStatus(ValueRange valueRange, Date date) {
 		log.info("extractPlannedStatus");
 		try {
 			List<List<Object>> values = valueRange.getValues();

@@ -72,7 +72,12 @@ public class TripResource {
 	@Path("/poll")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public String pollDatasources() {
-		pollingService.poll(journeyId);
-		return "ok";
+		try{ 
+			pollingService.poll(journeyId);
+			return "ok";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "not ok";
 	}
 }
