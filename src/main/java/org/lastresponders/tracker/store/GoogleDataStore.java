@@ -1,6 +1,5 @@
 package org.lastresponders.tracker.store;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -8,6 +7,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.lastresponders.tracker.data.TripPosition;
+import org.lastresponders.tracker.exception.NoDataException;
+import org.springframework.util.Assert;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -18,7 +19,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
-
+import com.google.common.collect.ImmutableList;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 
 public class GoogleDataStore {
@@ -65,7 +66,7 @@ public class GoogleDataStore {
 	}
 
 	public List<TripPosition> fetchAllPoints(String journeyId) {
-		List<TripPosition> ret = new ArrayList<TripPosition>();
+		ImmutableList.Builder<TripPosition> listBuilder = ImmutableList.builder();
 
 		Query q = new Query(journeyId + "-position").addSort("dateTime", Query.SortDirection.ASCENDING);
 
@@ -73,14 +74,14 @@ public class GoogleDataStore {
 		List<Entity> entityList = query.asList(FetchOptions.Builder.withLimit(FETCH_LIMIT));
 
 		for (Entity entity : entityList) {
-			ret.add(tripData(entity));
+			listBuilder.add(tripData(entity));
 		}
-		return ret;
+		return listBuilder.build();
 	}
 
 	public List<TripPosition> fetchPointsForDateRange(Date startTime, Date endTime, String journeyId) {
 		log.info("fetchPointsForDateRange" +startTime + " "+ endTime ) ;
-		List<TripPosition> ret = new ArrayList<TripPosition>();
+		ImmutableList.Builder<TripPosition> listBuilder = ImmutableList.builder();
 
 		Query q = new Query(journeyId + "-position").addSort("dateTime", Query.SortDirection.ASCENDING);
 
@@ -118,12 +119,10 @@ public class GoogleDataStore {
 		Iterator<Entity> iterator = entityList.iterator();
 		while (iterator.hasNext()) {
 			Entity e = iterator.next();
-			ret.add(tripData(e));
+			listBuilder.add(tripData(e));
 		}
 		
-		log.info("fetchPointsForDateRange " + ret.size()) ;
-		
-		return ret;
+		return listBuilder.build();
 
 	}
 
@@ -141,15 +140,16 @@ public class GoogleDataStore {
 		return fetchPointsForDateRange(dayStart, dayEnd, journeyId);
 	}
 
-	public TripPosition fetchLastPoint(String journeyId) {
+	public TripPosition fetchLastPoint(String journeyId) throws NoDataException {
+		Assert.notNull(journeyId, "journeyId was null");
+		
 		Query q = new Query(journeyId + "-position").addSort("dateTime", Query.SortDirection.DESCENDING);
 
 		PreparedQuery query = datastore.prepare(q);
 		Iterator<Entity> entityIterator = query.asIterator((FetchOptions.Builder.withLimit(1)));
 		if (entityIterator.hasNext())
 			return tripData(entityIterator.next());
-		else
-			return null;
+		throw new NoDataException("no points for " + journeyId);
 	}
 
 	private TripPosition tripData(Entity entity) {
@@ -161,48 +161,54 @@ public class GoogleDataStore {
 		return tripPosition;
 	}
 
-	public TripPosition fetchFirstPoint(String journeyId) {
+	public TripPosition fetchFirstPoint(String journeyId) throws NoDataException {
+		Assert.notNull(journeyId, "journeyId was null");
+		
 		Query q = new Query(journeyId + "-position").addSort("dateTime", Query.SortDirection.ASCENDING);
 		PreparedQuery query = datastore.prepare(q);
 		Iterator<Entity> entityIterator = query.asIterator((FetchOptions.Builder.withLimit(1)));
 		if (entityIterator.hasNext())
 			return tripData(entityIterator.next());
-		else
-			return null;
+		throw new NoDataException("no points for " + journeyId);
 	}
 
-	public TripPosition fetchResampledFirstPoint(String journeyId) {
+	public TripPosition fetchResampledFirstPoint(String journeyId) throws NoDataException {
+		Assert.notNull(journeyId, "journeyId was null");
+		
 		Query q = new Query(journeyId + "-position-resampled").addSort("dateTime", Query.SortDirection.ASCENDING);
 		PreparedQuery query = datastore.prepare(q);
 		Iterator<Entity> entityIterator = query.asIterator((FetchOptions.Builder.withLimit(1)));
 		if (entityIterator.hasNext())
 			return tripData(entityIterator.next());
-		else
-			return null;
+		throw new NoDataException("no points for " + journeyId);
 	}
 	
-	public TripPosition fetchResampledLastPoint(String journeyId) {
+	public TripPosition fetchResampledLastPoint(String journeyId) throws NoDataException {
+		Assert.notNull(journeyId, "journeyId was null");
+		
 		Query q = new Query(journeyId + "-position-resampled").addSort("dateTime", Query.SortDirection.DESCENDING);
 		PreparedQuery query = datastore.prepare(q);
 		Iterator<Entity> entityIterator = query.asIterator((FetchOptions.Builder.withLimit(1)));
 		if (entityIterator.hasNext())
 			return tripData(entityIterator.next());
-		else
-			return null;
+		throw new NoDataException("no points for " + journeyId);
 	}
 
 	public List<TripPosition> fetchResampledRoute(String journeyId) {
-		log.info("fetchResampledRoute" );
-		List<TripPosition> ret = new ArrayList<TripPosition>();
+		Assert.notNull(journeyId, "journeyId was null");
+		
+		ImmutableList.Builder<TripPosition> listBuilder = ImmutableList.builder();
+		
 		Query q = new Query(journeyId + "-position-resampled").addSort("dateTime", Query.SortDirection.DESCENDING);
 
 		PreparedQuery query = datastore.prepare(q);
 		List<Entity> entityList = query.asList(FetchOptions.Builder.withLimit(FETCH_LIMIT));
 
 		for (Entity entity : entityList) {
-			ret.add(tripData(entity));
+			listBuilder.add(tripData(entity));
 		}
-		return ret;
+		
+		return listBuilder.build();
 	}
 
 }

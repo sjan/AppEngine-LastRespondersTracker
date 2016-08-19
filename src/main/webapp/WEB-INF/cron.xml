@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
   <cron>
-    <url>/rest/journey/poll</url>
+    <url>/rest/journey/pollDatasource</url>
     <description>poll</description>
-    <schedule>every 1 minute</schedule>
+    <schedule>every 10 minute</schedule>
+  </cron>
+  
+    <cron>
+    <url>/rest/journey/pollResample</url>
+    <description>poll Resample Data</description>
+    <schedule>every 10 minute</schedule>
   </cron>
 </cronentries>

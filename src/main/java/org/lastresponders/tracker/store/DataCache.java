@@ -2,67 +2,77 @@ package org.lastresponders.tracker.store;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.lastresponders.tracker.data.TripPosition;
-import org.lastresponders.tracker.data.TripStatus;
+import org.lastresponders.tracker.exception.BadDataException;
+import org.lastresponders.tracker.exception.NoDataException;
+import org.mortbay.log.Log;
 
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 public class DataCache {
 	public static enum CacheKey {
-		PROGRESS_ROUTE(Duration.standardHours(1)),
-		PLAN_ROUTE(Duration.standardDays(1)),
-		PLAN_STATUS(Duration.standardHours(12));
+		PROGRESS_ROUTE(Duration.standardHours(1)), PROGRESS_POINT(Duration.standardMinutes(10)), PLAN_ROUTE(
+				Duration.standardHours(12));
 
-		CacheKey(Duration d){
+		private final Duration expirationDuration;
+
+		CacheKey(Duration d) {
+			this.expirationDuration = d;
 		}
-		
+
+		Duration getDuration() {
+			return expirationDuration;
+		}
+
 	};
-	
-	public Map<CacheKey , Date > cacheMap;
-	
-	private TripStatus plannedTripStatus;
-	//private Duration plannedTripStatusDate;
-	
-	private TripStatus tripStatus2;
-		
+
+	private Map<CacheKey, DateTime> cacheExpireMap = new HashMap<CacheKey, DateTime>();
+	private List<TripPosition> resampledRoute = null;
+
 	@Inject
 	GoogleDataStore googleDataStore;
-	
+
 	@Inject
 	GoogleSheetData googleSheetData;
 
 	private ValueRange valueRange = null;
 
-	//progress
-	public TripPosition getLastPosition(String journeyId) {
-		return googleDataStore.fetchLastPoint(journeyId);
-	}	
+	private TripPosition lastPoint = null;
 
-	public List<TripPosition> progressRoute(String journeyId) {
-		List <TripPosition> list = googleDataStore.fetchResampledRoute(journeyId);
-		list.add(googleDataStore.fetchLastPoint(journeyId));
-		return list;
+	// progress
+	public TripPosition getLastProgressPosition(String journeyId) throws NoDataException {
+		if (lastPoint == null || DateTime.now().isAfter(cacheExpireMap.get(CacheKey.PROGRESS_POINT))) {
+			Log.info("refeshing PROGRESS_POINT cache");
+			cacheExpireMap.put(CacheKey.PROGRESS_POINT, DateTime.now().plus(CacheKey.PROGRESS_POINT.getDuration()));
+			lastPoint = googleDataStore.fetchLastPoint(journeyId);
+		}
+		return lastPoint;
 	}
 
-	public ValueRange getPlannedRouteData(String journeyId) {
-		valueRange = googleSheetData.getPlannedRouteData();
+	public List<TripPosition> progressResampledRoute(String journeyId) throws NoDataException {
+		if (resampledRoute == null || DateTime.now().isAfter(cacheExpireMap.get(CacheKey.PROGRESS_ROUTE))) {
+			Log.info("refeshing PROGRESS_ROUTE cache");
+			cacheExpireMap.put(CacheKey.PROGRESS_ROUTE, DateTime.now().plus(CacheKey.PROGRESS_ROUTE.getDuration()));
+			resampledRoute = googleDataStore.fetchResampledRoute(journeyId);
+		}
+		return resampledRoute;
+	}
+
+	// planned
+	public ValueRange getPlannedRouteData(String journeyId) throws BadDataException {
+		if (valueRange == null || DateTime.now().isAfter(cacheExpireMap.get(CacheKey.PLAN_ROUTE))) {
+			Log.info("refeshing PLAN_ROUTE cache");
+			cacheExpireMap.put(CacheKey.PLAN_ROUTE, DateTime.now().plus(CacheKey.PLAN_ROUTE.getDuration()));
+			valueRange = googleSheetData.getPlannedRouteData();
+		}
 		return valueRange;
-	}
-	
-	public TripStatus plannedStatus(String journeyId) {
-		Calendar c = Calendar.getInstance();
-		plannedTripStatus = googleSheetData.extractPlannedStatus(googleSheetData.getPlannedRouteData() , c.getTime());
-		return plannedTripStatus;
-	}
-
-	public List<TripPosition> plannedRoute() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

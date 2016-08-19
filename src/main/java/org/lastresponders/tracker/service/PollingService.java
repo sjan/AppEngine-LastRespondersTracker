@@ -11,7 +11,10 @@ import javax.inject.Inject;
 
 import org.lastresponders.tracker.adapter.DelormeAdapter;
 import org.lastresponders.tracker.data.TripPosition;
+import org.lastresponders.tracker.exception.NoDataException;
 import org.lastresponders.tracker.store.GoogleDataStore;
+
+import com.google.appengine.repackaged.com.google.common.collect.ImmutableList;
 
 public class PollingService {
 	private static final Logger log = Logger.getLogger(PollingService.class.getName());
@@ -19,7 +22,6 @@ public class PollingService {
 	private Date refreshDate;
 	private Date defaultDate;
 
-	private static SimpleDateFormat formatter = new SimpleDateFormat("yy-MM-dd");
 	
 	@Inject
 	GoogleDataStore googleDataStore;
@@ -29,24 +31,25 @@ public class PollingService {
 
 	public PollingService() {
 		Calendar calendar = Calendar.getInstance();
-		calendar.set(2016, Calendar.AUGUST, 9);
+		calendar.set(2016, Calendar.AUGUST, 23);
 		defaultDate = calendar.getTime();
 	}
 
-	public void poll(String journeyId) {
-		log.info("poll");
-
-		TripPosition lastPoint = googleDataStore.fetchLastPoint(journeyId);
+	public void pollGpsPoints(String journeyId) {
+		log.info("pollGpsPoints");
 		
-		if(lastPoint == null ) {
+		try {
+			refreshDate = googleDataStore.fetchLastPoint(journeyId).getDateTime();			
+		} catch(NoDataException e) {
 			refreshDate = defaultDate;
-		} else {
-			refreshDate = lastPoint.getDateTime();
 		}
 		
 		List<TripPosition> list = delormeAdapter.callDelorme("StephenJan", refreshDate);
 		googleDataStore.addTripPositions(journeyId, list);
-		
+	}
+	
+	public void pollResampleRoute(String journeyId) throws NoDataException {
+		log.info("pollResampleRoute");
 		resampleRoute(journeyId);
 		
 	}
@@ -61,14 +64,12 @@ public class PollingService {
 			log.info(position.getMessageId() + " " + position.getDateTime());
 		}
 	}
-	
-	public void resampleRoute(String journeyId) {
+
+	//TODO: this can be optimzed. we don't need to resample all days
+	public void resampleRoute(String journeyId) throws NoDataException {
 		log.info("resampleRoute");
 		TripPosition firstPoint = googleDataStore.fetchFirstPoint(journeyId);
 		TripPosition lastPoint = googleDataStore.fetchLastPoint(journeyId);
-		
-//		TripPosition firstResampledPoint = googleDataStore.fetchResampledFirstPoint(journeyId);
-//		TripPosition lastResampledPoint = googleDataStore.fetchResampledLastPoint(journeyId);
 
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(firstPoint.getDateTime());
@@ -76,19 +77,61 @@ public class PollingService {
 		Calendar calendar2 = Calendar.getInstance();
 		calendar2.setTime(lastPoint.getDateTime());
 		
-		while(calendar.before(calendar2)) {
-			List<TripPosition> resampledList = resample(googleDataStore.fetchPointsForDay(calendar.getTime(), journeyId));
-			googleDataStore.addResampledTripPositions(journeyId, resampledList);
-			calendar.add(Calendar.DATE, 1);
-		}	
-		
-		//List<TripPosition> positionList = googleDataStore.fetchAllPoints(journeyId);
+		for(Date day : buildDayList(calendar , calendar2)) {
+			List<TripPosition> resampledList = resample(googleDataStore.fetchPointsForDay(day , journeyId));
+			googleDataStore.addResampledTripPositions(journeyId, resampledList);			
+		}
+	}
+	
+	public void resampleRouteOptimized(String journeyId) throws NoDataException {
+		log.info("resampleRouteOptimized");
+		TripPosition firstPoint = googleDataStore.fetchResampledLastPoint(journeyId);
+		TripPosition lastPoint = googleDataStore.fetchLastPoint(journeyId);
 
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(firstPoint.getDateTime());
+		
+		Calendar calendar2 = Calendar.getInstance();
+		calendar2.setTime(lastPoint.getDateTime());
+		
+		for(Date day : buildDayList(calendar , calendar2)) {
+			List<TripPosition> resampledList = resample(googleDataStore.fetchPointsForDay(day , journeyId));
+			googleDataStore.addResampledTripPositions(journeyId, resampledList);			
+		}
+	}
+
+	private List<Date> buildDayList(Calendar calendar1, Calendar calendar2) {
+		ImmutableList.Builder<Date> dateListBuilder = new ImmutableList.Builder<Date>();
+		
+		Calendar firstDate = Calendar.getInstance();
+		Calendar endDate = Calendar.getInstance();
+		
+		firstDate.clear();
+		firstDate.set(
+				calendar1.get(Calendar.YEAR),
+				calendar1.get(Calendar.MONTH),
+				calendar1.get(Calendar.DAY_OF_MONTH));
+		
+		endDate.clear();
+		endDate.set(
+				calendar2.get(Calendar.YEAR),
+				calendar2.get(Calendar.MONTH),
+				calendar2.get(Calendar.DAY_OF_MONTH));
+		
+		while(firstDate.before(endDate)) {
+			dateListBuilder.add(firstDate.getTime());
+			firstDate.add(Calendar.DATE, 1);			
+		}
+				
+		return dateListBuilder.build();
+		
 	}
 
 	private List<TripPosition> resample(List<TripPosition> resampledList) {
+		SimpleDateFormat formatter = new SimpleDateFormat("yy-MM-dd-");
 		
-		List <TripPosition> ret = new ArrayList<TripPosition>();
+		ImmutableList.Builder<TripPosition> listBuilder = new ImmutableList.Builder<TripPosition>();
+		
 		int size = resampledList.size();
 		int increment = size/4;
 		
@@ -106,11 +149,11 @@ public class PollingService {
 					resampledList.get(index).getLatitude(), 
 					resampledList.get(index).getLongitude(), 
 					resampledList.get(index).getDateTime(), 
-					messageId + "-"  +Integer.toString(i++));
-			ret.add(tripPosition);
+					messageId + Integer.toString(i++));
+			listBuilder.add(tripPosition);
 			index = index + increment;			
 		}
 		
-		return ret;
+		return listBuilder.build();
 	}
 }
