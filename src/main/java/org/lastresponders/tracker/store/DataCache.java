@@ -1,6 +1,5 @@
 package org.lastresponders.tracker.store;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -19,8 +18,9 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 
 public class DataCache {
 	public static enum CacheKey {
-		PROGRESS_ROUTE(Duration.standardHours(1)), PROGRESS_POINT(Duration.standardMinutes(10)), PLAN_ROUTE(
-				Duration.standardHours(12));
+		PROGRESS_ROUTE(Duration.standardHours(1)), 
+		PROGRESS_POINT(Duration.standardMinutes(10)), 
+		PLAN_ROUTE(Duration.standardHours(12));
 
 		private final Duration expirationDuration;
 
