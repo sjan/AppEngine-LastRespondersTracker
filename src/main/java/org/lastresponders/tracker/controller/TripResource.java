@@ -19,8 +19,8 @@ import org.lastresponders.tracker.service.PollingService;
 @Path("/journey/")
 public class TripResource {
 	private static final Logger log = Logger.getLogger(TripResource.class.getName());
-	private String journeyId  = "projectSpark";
-	
+	private String journeyId = "projectSpark";
+
 	@Inject
 	JourneyService journeyService;
 
@@ -40,7 +40,14 @@ public class TripResource {
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public List<TripPosition> plannedRoute() throws NoDataException, BadDataException {
 		return journeyService.plannedRoute(journeyId);
-		
+	}
+
+	@GET
+	@Path("/plannedRouteRefresh")
+	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	public String refreshSheets() throws BadDataException {
+		pollingService.refreshPlannedRoute(journeyId);
+		return "ok";
 	}
 
 	@GET
@@ -49,21 +56,21 @@ public class TripResource {
 	public TripStatus plannedStatus() throws BadDataException, NoDataException {
 		return journeyService.plannedStatus(journeyId);
 	}
-	
+
 	@GET
 	@Path("/progressRoute")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public List<TripPosition> progressRoute() throws NoDataException {
 		return journeyService.progressRoute(journeyId);
 	}
-	
+
 	@GET
 	@Path("/progressStatus")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public TripStatus progressStatus() throws NoDataException {
 		return journeyService.progressStatus(journeyId);
 	}
-	
+
 	@GET
 	@Path("/progressPosition")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
@@ -77,17 +84,13 @@ public class TripResource {
 	public String pollDatasources() {
 		pollingService.pollGpsPoints(journeyId);
 		return "ok";
-		
-		
 	}
-	
+
 	@GET
 	@Path("/pollResample")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public String pollResample() throws NoDataException {
 		pollingService.pollResampleRoute(journeyId);
 		return "ok";
-		
-		
 	}
 }

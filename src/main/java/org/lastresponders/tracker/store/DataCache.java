@@ -73,6 +73,25 @@ public class DataCache {
 			cacheExpireMap.put(CacheKey.PLAN_ROUTE, DateTime.now().plus(CacheKey.PLAN_ROUTE.getDuration()));
 			valueRange = googleSheetData.getPlannedRouteData();
 		}
+
 		return valueRange;
 	}
+
+	public List<TripPosition> progressResampledRoute(String journeyId, Date defaultDate) {
+		if (resampledRoute == null || DateTime.now().isAfter(cacheExpireMap.get(CacheKey.PROGRESS_ROUTE))) {
+			Log.info("refeshing PROGRESS_ROUTE cache");
+			cacheExpireMap.put(CacheKey.PROGRESS_ROUTE, DateTime.now().plus(CacheKey.PROGRESS_ROUTE.getDuration()));
+			resampledRoute = googleDataStore.fetchResampledRoute(journeyId, defaultDate);
+		}
+		return resampledRoute;
+	}
+	
+	// planned
+		public void refreshPlannedRouteData(String journeyId) throws BadDataException {
+			Log.info("refeshing PLAN_ROUTE cache");
+			cacheExpireMap.put(CacheKey.PLAN_ROUTE, DateTime.now().plus(CacheKey.PLAN_ROUTE.getDuration()));
+			valueRange = googleSheetData.getPlannedRouteData();
+		
+		}
+
 }

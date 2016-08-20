@@ -26,19 +26,21 @@ public class GoogleSheetData {
 	private static final String SPREADSHEET_SHEETID = "Route without Kyrgyzstan";
 	private static final String SPREADSHEET_RANGE = "A2:T76";
 	private static final String DATE_FORMAT = "dd/MM/yyyy";
-	
+
 	public ValueRange getPlannedRouteData() throws BadDataException {
 		log.info("getPlannedRouteData");
 
 		try {
-			return SheetsUtil.getSheet().spreadsheets().values().get(SPREADSHEET_ID, SPREADSHEET_SHEETID + "!" + SPREADSHEET_RANGE).execute();
+			return SheetsUtil.getSheet().spreadsheets().values()
+					.get(SPREADSHEET_ID, SPREADSHEET_SHEETID + "!" + SPREADSHEET_RANGE).execute();
 		} catch (IOException e) {
 			throw new BadDataException(e);
 		}
-				
+
 	}
-	
-	public static List<TripPosition> extractPlannedRoute(ValueRange valueRange) throws NoDataException, BadDataException {
+
+	public static List<TripPosition> extractPlannedRoute(ValueRange valueRange)
+			throws NoDataException, BadDataException {
 		ImmutableList.Builder<TripPosition> listBuilder = ImmutableList.builder();
 
 		try {
@@ -65,8 +67,9 @@ public class GoogleSheetData {
 		}
 		return listBuilder.build();
 	}
-	
-	public static TripStatus extractPlannedStatus(ValueRange valueRange, Date date) throws NoDataException, BadDataException {
+
+	public static TripStatus extractPlannedStatus(ValueRange valueRange, Date date)
+			throws NoDataException, BadDataException {
 		try {
 			List<List<Object>> values = valueRange.getValues();
 			if (values == null || values.size() == 0) {
@@ -79,9 +82,9 @@ public class GoogleSheetData {
 					List<Object> row = iterator.next();
 					if (row.size() >= 18) {
 						Date sheetDate = new SimpleDateFormat(DATE_FORMAT).parse((String) row.get(1));
-						if(sameDay(date, sheetDate)) {
+						if (sameDay(date, sheetDate)) {
 							Double distance = Double.parseDouble((String) row.get(8));
-							return new TripStatus(distance , date );
+							return new TripStatus(distance, date);
 						}
 					}
 				}
@@ -90,18 +93,18 @@ public class GoogleSheetData {
 			e.printStackTrace();
 			throw new BadDataException(e);
 		}
-		return new TripStatus(Double.valueOf(0) , date);
+		return new TripStatus(Double.valueOf(0), date);
 	}
-	
+
 	public static boolean sameDay(Date date1, Date date2) {
 		Calendar calendarDate = Calendar.getInstance();
 		calendarDate.setTime(date1);
-		
+
 		Calendar calendarDate2 = Calendar.getInstance();
 		calendarDate2.setTime(date2);
-		
-		return (calendarDate.get(Calendar.YEAR) == calendarDate2.get(Calendar.YEAR) &&
-				calendarDate.get(Calendar.DAY_OF_YEAR) == calendarDate2.get(Calendar.DAY_OF_YEAR) );
-		
+
+		return (calendarDate.get(Calendar.YEAR) == calendarDate2.get(Calendar.YEAR)
+				&& calendarDate.get(Calendar.DAY_OF_YEAR) == calendarDate2.get(Calendar.DAY_OF_YEAR));
+
 	}
 }
