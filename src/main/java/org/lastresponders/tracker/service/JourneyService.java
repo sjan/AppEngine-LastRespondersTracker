@@ -22,7 +22,8 @@ public class JourneyService {
 	private static final Logger log = Logger.getLogger(JourneyService.class.getName());
 
 	public final static double KM_TO_MILE_CONVERSION = 1.609;
-
+	public final static int RADIUS_EARTH = 6371; // Radius of the earth
+	
 	@Inject
 	DelormeAdapter delormeAdapter;
 
@@ -49,6 +50,7 @@ public class JourneyService {
 	public List<TripPosition> progressRoute(String journeyId) throws NoDataException {
 		ImmutableList.Builder<TripPosition> returnList = ImmutableList.builder();
 		returnList.addAll(dataCache.progressResampledRoute(journeyId, defaultDate));
+		//addToday's points
 		returnList.add(progressPosition(journeyId));
 		return returnList.build();
 	}
@@ -63,10 +65,7 @@ public class JourneyService {
 
 		TripPosition lastPosition = null;
 		for (TripPosition position : positionList) {
-			log.info(position.toString() + " " + position.getDateTime());
-			if (lastPosition != null) {
-				totalDistance += distance(lastPosition, position);
-			}
+			totalDistance += distance(lastPosition, position);
 			lastPosition = position;
 		}
 
@@ -81,19 +80,15 @@ public class JourneyService {
 		return distance(position1.getLatitude(), position2.getLatitude(), position1.getLongitude(),
 				position2.getLongitude());
 	}
-
+	
 	private static double distance(double lat1, double lat2, double lon1, double lon2) {
-
-		final int R = 6371; // Radius of the earth
-
 		Double latDistance = Math.toRadians(lat2 - lat1);
 		Double lonDistance = Math.toRadians(lon2 - lon1);
 		Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(lat1))
 				* Math.cos(Math.toRadians(lat2)) * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
 		Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		double distance = R * c / KM_TO_MILE_CONVERSION; // convert to kmeters
 
-		return distance;
+		return RADIUS_EARTH * c / KM_TO_MILE_CONVERSION; // convert to kmeters
 	}
 
 }

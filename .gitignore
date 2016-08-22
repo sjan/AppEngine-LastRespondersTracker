@@ -46,3 +46,4 @@ target/
 # certificate
 ####################
 *ca.json
+/bin

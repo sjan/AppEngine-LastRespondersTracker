@@ -1,0 +1,14 @@
+package org.lastresponders.tracker.test;
+
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+public class SomeClass {
+
+	@Test
+	public void test() {
+		fail("Not yet implemented");
+	}
+
+}

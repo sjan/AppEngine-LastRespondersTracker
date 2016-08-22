@@ -30,7 +30,6 @@ public class SheetsUtil {
 	}
 
 	public static Sheets getSheet() throws IOException {
-
 		GoogleCredential credential = GoogleCredential.getApplicationDefault();
 
 		if (credential.createScopedRequired()) {

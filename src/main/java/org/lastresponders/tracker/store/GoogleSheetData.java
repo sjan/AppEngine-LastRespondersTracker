@@ -23,22 +23,42 @@ public class GoogleSheetData {
 	private static final Logger log = Logger.getLogger(JourneyService.class.getName());
 
 	private static final String SPREADSHEET_ID = "1tiVCjheex7q5c-N5ZHWQ9nP9ZbGRCoNRTWAWds09GzA";
-	private static final String SPREADSHEET_SHEETID = "Route without Kyrgyzstan";
-	private static final String SPREADSHEET_RANGE = "A2:T76";
+	private static final String SPREADSHEET_PLAN_SHEETID = "Route without Kyrgyzstan";
+	private static final String SPREADSHEET_PLAN_RANGE = "A2:T76";
+	
+	private static final String SPREADSHEET_PROGRESS_SHEETID = "progress sheet";
+	private static final String SPREADSHEET_PROGRESS_RANGE = "A2:T76";
+	
 	private static final String DATE_FORMAT = "dd/MM/yyyy";
 
-	public ValueRange getPlannedRouteData() throws BadDataException {
-		log.info("getPlannedRouteData");
+	private static final int PLAN_SHEET_COLUMNS = 20;
+	private static final int PLAN_SHEET_COLUMN_DATE = 1;
+	private static final int PLAN_SHEET_COLUMN_LAT = 18;
+	private static final int PLAN_SHEET_COLUMN_LONG = 19;
+	private static final int PLAN_SHEET_COLUMN_DISTANCE = 8;
+
+	public ValueRange getPlannedSheet() throws BadDataException {
+		log.info("getPlannedSheet");
 
 		try {
 			return SheetsUtil.getSheet().spreadsheets().values()
-					.get(SPREADSHEET_ID, SPREADSHEET_SHEETID + "!" + SPREADSHEET_RANGE).execute();
+					.get(SPREADSHEET_ID, SPREADSHEET_PLAN_SHEETID + "!" + SPREADSHEET_PLAN_RANGE).execute();
 		} catch (IOException e) {
 			throw new BadDataException(e);
 		}
-
 	}
 
+	public ValueRange getProgressSheet() throws BadDataException {
+		log.info("getProgressSheet");
+
+		try {
+			return SheetsUtil.getSheet().spreadsheets().values()
+					.get(SPREADSHEET_ID, SPREADSHEET_PROGRESS_SHEETID + "!" + SPREADSHEET_PROGRESS_RANGE).execute();
+		} catch (IOException e) {
+			throw new BadDataException(e);
+		}
+	}
+	
 	public static List<TripPosition> extractPlannedRoute(ValueRange valueRange)
 			throws NoDataException, BadDataException {
 		ImmutableList.Builder<TripPosition> listBuilder = ImmutableList.builder();
@@ -50,14 +70,14 @@ public class GoogleSheetData {
 				throw new NoDataException("valueRange empty");
 			} else {
 				Iterator<List<Object>> iterator = values.iterator();
-				iterator.next(); // skip first two lines
+				iterator.next(); // skip first two rows
 				iterator.next();
 				while (iterator.hasNext()) {
 					List<Object> row = iterator.next();
-					if (row.size() >= 18) {
-						Date formattedDate = new SimpleDateFormat(DATE_FORMAT).parse((String) row.get(1));
-						listBuilder.add(new TripPosition(Double.parseDouble((String) row.get(18)),
-								Double.parseDouble((String) row.get(19)), formattedDate));
+					if (row.size() >= PLAN_SHEET_COLUMNS) {
+						Date formattedDate = new SimpleDateFormat(DATE_FORMAT).parse((String) row.get(PLAN_SHEET_COLUMN_DATE));
+						listBuilder.add(new TripPosition(Double.parseDouble((String) row.get(PLAN_SHEET_COLUMN_LAT)),
+								Double.parseDouble((String) row.get(PLAN_SHEET_COLUMN_LONG)), formattedDate));
 					}
 				}
 			}
@@ -80,10 +100,10 @@ public class GoogleSheetData {
 				iterator.next();
 				while (iterator.hasNext()) {
 					List<Object> row = iterator.next();
-					if (row.size() >= 18) {
-						Date sheetDate = new SimpleDateFormat(DATE_FORMAT).parse((String) row.get(1));
+					if (row.size() >= PLAN_SHEET_COLUMNS) {
+						Date sheetDate = new SimpleDateFormat(DATE_FORMAT).parse((String) row.get(PLAN_SHEET_COLUMN_DATE));
 						if (sameDay(date, sheetDate)) {
-							Double distance = Double.parseDouble((String) row.get(8));
+							Double distance = Double.parseDouble((String) row.get(PLAN_SHEET_COLUMN_DISTANCE));
 							return new TripStatus(distance, date);
 						}
 					}

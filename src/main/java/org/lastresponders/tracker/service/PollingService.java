@@ -18,10 +18,13 @@ import org.lastresponders.tracker.store.GoogleDataStore;
 import com.google.common.collect.ImmutableList;
 
 public class PollingService {
-	private static final Logger log = Logger.getLogger(PollingService.class.getName());
+	private static final Logger log = Logger.getLogger(PollingService.class
+			.getName());
+
+	private static final String DELORME_FEED = "StephenJan";
 
 	private Date refreshDate;
-	private Date defaultDate;
+	private Date journeyStartDate;
 
 	@Inject
 	DataCache dataCache;
@@ -35,39 +38,30 @@ public class PollingService {
 	public PollingService() {
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(2016, Calendar.AUGUST, 1);
-		defaultDate = calendar.getTime();
+		journeyStartDate = calendar.getTime();
 	}
 
 	public void pollGpsPoints(String journeyId) {
 		log.info("pollGpsPoints");
 
 		try {
-			refreshDate = googleDataStore.fetchLastPoint(journeyId).getDateTime();
+			refreshDate = googleDataStore.fetchLastPoint(journeyId)
+					.getDateTime();
 		} catch (NoDataException e) {
-			refreshDate = defaultDate;
+			refreshDate = journeyStartDate;
 		}
 
-		List<TripPosition> list = delormeAdapter.callDelorme("StephenJan", refreshDate);
+		List<TripPosition> list = delormeAdapter.callDelorme(DELORME_FEED,
+				refreshDate);
 		googleDataStore.addTripPositions(journeyId, list);
 	}
 
 	public void pollResampleRoute(String journeyId) throws NoDataException {
 		log.info("pollResampleRoute");
 		resampleRoute(journeyId);
-
 	}
 
-	public void test(String journeyId) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(2016, Calendar.AUGUST, 10);
-
-		List<TripPosition> positionList = googleDataStore.fetchPointsForDay(calendar.getTime(), journeyId);
-		for (TripPosition position : positionList) {
-			log.info(position.getMessageId() + " " + position.getDateTime());
-		}
-	}
-
-	// TODO: this can be optimzed. we don't need to resample all days
+	// TODO: this can be optimized. we don't need to resample all days
 	public void resampleRoute(String journeyId) throws NoDataException {
 		log.info("resampleRoute");
 		TripPosition firstPoint = googleDataStore.fetchFirstPoint(journeyId);
@@ -80,14 +74,17 @@ public class PollingService {
 		calendar2.setTime(lastPoint.getDateTime());
 
 		for (Date day : buildDayList(calendar, calendar2)) {
-			googleDataStore.addResampledTripPositions(journeyId,
-					resample(googleDataStore.fetchPointsForDay(day, journeyId)));
+			googleDataStore
+					.addResampledTripPositions(journeyId,
+							resample(googleDataStore.fetchPointsForDay(day,
+									journeyId)));
 		}
 	}
 
 	public void resampleRouteOptimized(String journeyId) throws NoDataException {
 		log.info("resampleRouteOptimized");
-		TripPosition firstPoint = googleDataStore.fetchResampledLastPoint(journeyId);
+		TripPosition firstPoint = googleDataStore
+				.fetchResampledLastPoint(journeyId);
 		TripPosition lastPoint = googleDataStore.fetchLastPoint(journeyId);
 
 		Calendar calendar = Calendar.getInstance();
@@ -97,23 +94,26 @@ public class PollingService {
 		calendar2.setTime(lastPoint.getDateTime());
 
 		for (Date day : buildDayList(calendar, calendar2)) {
-			List<TripPosition> resampledList = resample(googleDataStore.fetchPointsForDay(day, journeyId));
+			List<TripPosition> resampledList = resample(googleDataStore
+					.fetchPointsForDay(day, journeyId));
 			googleDataStore.addResampledTripPositions(journeyId, resampledList);
 		}
 	}
 
-	private List<Date> buildDayList(Calendar calendar1, Calendar calendar2) {
+	private List<Date> buildDayList(Calendar startTime, Calendar endTime) {
 		ImmutableList.Builder<Date> dateListBuilder = new ImmutableList.Builder<Date>();
 
 		Calendar firstDate = Calendar.getInstance();
 		Calendar endDate = Calendar.getInstance();
 
 		firstDate.clear();
-		firstDate.set(calendar1.get(Calendar.YEAR), calendar1.get(Calendar.MONTH),
-				calendar1.get(Calendar.DAY_OF_MONTH));
+		firstDate.set(startTime.get(Calendar.YEAR),
+				startTime.get(Calendar.MONTH),
+				startTime.get(Calendar.DAY_OF_MONTH));
 
 		endDate.clear();
-		endDate.set(calendar2.get(Calendar.YEAR), calendar2.get(Calendar.MONTH), calendar2.get(Calendar.DAY_OF_MONTH));
+		endDate.set(endTime.get(Calendar.YEAR), endTime.get(Calendar.MONTH),
+				endTime.get(Calendar.DAY_OF_MONTH));
 
 		while (firstDate.before(endDate)) {
 			dateListBuilder.add(firstDate.getTime());
@@ -121,7 +121,6 @@ public class PollingService {
 		}
 
 		return dateListBuilder.build();
-
 	}
 
 	private List<TripPosition> resample(List<TripPosition> resampledList) {
@@ -130,25 +129,23 @@ public class PollingService {
 		ImmutableList.Builder<TripPosition> listBuilder = new ImmutableList.Builder<TripPosition>();
 
 		int size = resampledList.size();
-		int increment = size / 4;
-
-		if (increment < 1) {
-			increment = 1;
-		}
-
+		int increment = (size < 4) ? 1 : (size / 4);
+		
 		int index = 0;
-		int i = 0;
+		int dataStoreKey = 0;
 
 		while (index < size) {
-			String messageId = formatter.format(resampledList.get(index).getDateTime());
+			String messageId = formatter.format(resampledList.get(index)
+					.getDateTime());
 
-			TripPosition tripPosition = new TripPosition(resampledList.get(index).getLatitude(),
-					resampledList.get(index).getLongitude(), resampledList.get(index).getDateTime(),
-					messageId + Integer.toString(i++));
+			TripPosition tripPosition = new TripPosition(resampledList.get(
+					index).getLatitude(), resampledList.get(index)
+					.getLongitude(), resampledList.get(index).getDateTime(),
+					messageId + Integer.toString(dataStoreKey++));
 			listBuilder.add(tripPosition);
 			index = index + increment;
 		}
-
+		
 		return listBuilder.build();
 	}
 

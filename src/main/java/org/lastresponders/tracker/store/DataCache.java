@@ -34,17 +34,15 @@ public class DataCache {
 
 	};
 
-	private Map<CacheKey, DateTime> cacheExpireMap = new HashMap<CacheKey, DateTime>();
-	private List<TripPosition> resampledRoute = null;
-
 	@Inject
 	GoogleDataStore googleDataStore;
 
 	@Inject
 	GoogleSheetData googleSheetData;
 
+	private Map<CacheKey, DateTime> cacheExpireMap = new HashMap<CacheKey, DateTime>();
+	private List<TripPosition> resampledRoute = null;
 	private ValueRange valueRange = null;
-
 	private TripPosition lastPoint = null;
 
 	// progress
@@ -65,18 +63,7 @@ public class DataCache {
 		}
 		return resampledRoute;
 	}
-
-	// planned
-	public ValueRange getPlannedRouteData(String journeyId) throws BadDataException {
-		if (valueRange == null || DateTime.now().isAfter(cacheExpireMap.get(CacheKey.PLAN_ROUTE))) {
-			Log.info("refeshing PLAN_ROUTE cache");
-			cacheExpireMap.put(CacheKey.PLAN_ROUTE, DateTime.now().plus(CacheKey.PLAN_ROUTE.getDuration()));
-			valueRange = googleSheetData.getPlannedRouteData();
-		}
-
-		return valueRange;
-	}
-
+	
 	public List<TripPosition> progressResampledRoute(String journeyId, Date defaultDate) {
 		if (resampledRoute == null || DateTime.now().isAfter(cacheExpireMap.get(CacheKey.PROGRESS_ROUTE))) {
 			Log.info("refeshing PROGRESS_ROUTE cache");
@@ -87,11 +74,22 @@ public class DataCache {
 	}
 	
 	// planned
+		public ValueRange getPlannedRouteData(String journeyId) throws BadDataException {
+			if (valueRange == null || DateTime.now().isAfter(cacheExpireMap.get(CacheKey.PLAN_ROUTE))) {
+				Log.info("refeshing PLAN_ROUTE cache");
+				cacheExpireMap.put(CacheKey.PLAN_ROUTE, DateTime.now().plus(CacheKey.PLAN_ROUTE.getDuration()));
+				valueRange = googleSheetData.getPlannedSheet();
+			}
+
+			return valueRange;
+		}
+		
 		public void refreshPlannedRouteData(String journeyId) throws BadDataException {
 			Log.info("refeshing PLAN_ROUTE cache");
 			cacheExpireMap.put(CacheKey.PLAN_ROUTE, DateTime.now().plus(CacheKey.PLAN_ROUTE.getDuration()));
-			valueRange = googleSheetData.getPlannedRouteData();
+			valueRange = googleSheetData.getPlannedSheet();
 		
 		}
+		
 
 }

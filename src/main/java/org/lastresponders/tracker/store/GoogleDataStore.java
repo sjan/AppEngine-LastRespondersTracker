@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 
 public class GoogleDataStore {
 	private static final Logger log = Logger.getLogger(GoogleDataStore.class.getName());
-
 	private static final int FETCH_LIMIT = 2000;
 
 	private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -131,14 +130,15 @@ public class GoogleDataStore {
 	public List<TripPosition> fetchPointsForDay(Date day, String journeyId) {
 		Calendar c = Calendar.getInstance();
 		c.setTime(day);
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		Date dayStart = c.getTime();
-
-		c.set(Calendar.HOUR_OF_DAY, 24);
-		Date dayEnd = c.getTime();
-
+		
+		Calendar c2 = Calendar.getInstance();
+		c2.clear();
+		c2.set(Calendar.YEAR, c.get(Calendar.YEAR));
+		c2.set(Calendar.DAY_OF_YEAR, c.get(Calendar.DAY_OF_YEAR));
+		Date dayStart = c2.getTime();
+		c2.add(Calendar.DATE, 1);
+		Date dayEnd = c2.getTime(); 
+		
 		return fetchPointsForDateRange(dayStart, dayEnd, journeyId);
 	}
 

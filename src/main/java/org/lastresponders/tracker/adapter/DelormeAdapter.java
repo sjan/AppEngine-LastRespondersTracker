@@ -15,6 +15,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.lastresponders.tracker.data.TripPosition;
+import org.springframework.util.Assert;
+
+import com.google.common.base.Optional;
 
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 import de.micromata.opengis.kml.v_2_2_0.Data;
@@ -37,20 +40,23 @@ public class DelormeAdapter {
 	public DelormeAdapter() {
 
 	}
+	
+	public static final String DELORME_START_DATE_PARAM = "d1";
+	public static final String DELORME_END_DATE_PARAM = "d2";
 
-	public List<TripPosition> callDelorme(String feed, Date startDate, Date endDate) {
+	public List<TripPosition> callDelorme(String feed, Optional<Date> startDate, Optional<Date> endDate) {
 		List<TripPosition> ret = new ArrayList<TripPosition>();
 
 		try {
 			Client client = ClientBuilder.newClient();
 			WebTarget target = client.target(DELORME_URL).path(DELORME_PATH + feed);
 
-			if (startDate != null) {
-				target = target.queryParam("d1", dateformat.format(startDate));
+			if (startDate.isPresent()) {
+				target = target.queryParam(DELORME_START_DATE_PARAM, dateformat.format(startDate.get()));
 			}
 
-			if (endDate != null) {
-				target = target.queryParam("d2", dateformat.format(endDate));
+			if (endDate.isPresent()) {
+				target = target.queryParam(DELORME_END_DATE_PARAM, dateformat.format(endDate.get()));
 			}
 
 			Response response = target.request(MediaType.TEXT_PLAIN_TYPE).get();
@@ -86,7 +92,9 @@ public class DelormeAdapter {
 		return ret;
 	}
 
-	public List<TripPosition> callDelorme(String journeyId, Date startDate) {
-		return callDelorme(journeyId, startDate, null);
+	public List<TripPosition> callDelorme(String feed, Date startDate) {
+		Assert.notNull(startDate);
+		Assert.notNull(feed);
+		return callDelorme(feed, Optional.of(startDate), Optional.<Date>absent());
 	}
 }
