@@ -29,16 +29,11 @@
 				<span id="infoLabelSubTitle" class="mdl-layout__title">Day X</span>
 			</div>
 			<div class="mdl-layout__header-row">
-				<span class="mdl-layout__title"><span id="infoProgressIcon"><i
+				<span class="mdl-layout__title" id="infoProgressTitle"><span id="infoProgressIcon"><i
 						class="material-icons">place</i></span>Progress 0.00 miles</span>
 				<div class="android-header-spacer mdl-layout-spacer"></div>
-				<span class="mdl-layout__title"><span id="infoPlannedIcon"><i
+				<span class="mdl-layout__title" id="infoPlannedTitle"><span id="infoPlannedIcon"><i
 						class="material-icons">place</i></span>Plan 0.00 miles</span>
-			<button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored mdl-shadow--4dp mdl-color--accent" id="add" data-upgraded=",MaterialButton,MaterialRipple" style="margin-top: 36px;">
-            <i class="material-icons" role="presentation">card_giftcard</i>
-            <span class="visuallyhidden">Add</span>
-          <span class="mdl-button__ripple-container"><span class="mdl-ripple is-animating" style="width: 160.392px; height: 160.392px; transform: translate(-50%, -50%) translate(37px, 31px);"></span></span></button>
-						
 			</div>
 		</div>
 
@@ -155,9 +150,10 @@
               geodesic: true,
               strokeColor: PROGRESS_COLOR,
               strokeOpacity: 1,
-              strokeWeight: 4
+              strokeWeight: 4,
+              zIndex: 1
+              
             });
-            progressPath.setZIndex(1);
             progressPath.setMap(map);
           },
           error: function(data) {
@@ -198,7 +194,7 @@
           crossDomain:"true",
           url: "/rest/journey/plannedStatus",
           success: function(data){
-          	//$('#infoPlannedTitle').text("Plan " + data["distance"].toFixed(2) + " miles");
+          	$('#infoPlannedTitle').html("<span id=infoPlannedIcon><i class=material-icons>place</i></span>Plan " + data["distance"].toFixed(2) + " miles");
           },
           error: function(data) {
             console.log("fail function " + JSON.stringify(data));
@@ -211,7 +207,7 @@
           crossDomain:"true",
           url: "/rest/journey/progressStatus",
           success: function(data){
-            //$('#infoProgressTitle').html("Progress " + data["distance"].toFixed(2) + " miles");
+            $('#infoProgressTitle').html("<span id=infoProgressIcon><i class=material-icons>place</i></span>Progress " + data["distance"].toFixed(2) + " miles");
           },
           error: function(data) {
             console.log("fail function " + JSON.stringify(data));
