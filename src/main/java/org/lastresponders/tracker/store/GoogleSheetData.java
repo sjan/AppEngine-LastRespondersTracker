@@ -23,7 +23,7 @@ public class GoogleSheetData {
 	private static final Logger log = Logger.getLogger(JourneyService.class.getName());
 
 	private static final String SPREADSHEET_ID = "1tiVCjheex7q5c-N5ZHWQ9nP9ZbGRCoNRTWAWds09GzA";
-	private static final String SPREADSHEET_PLAN_SHEETID = "Route without Kyrgyzstan";
+	private static final String SPREADSHEET_PLAN_SHEETID = "PlannedRoute_Data";
 	private static final String SPREADSHEET_PLAN_RANGE = "A2:T76";
 	
 	private static final String SPREADSHEET_PROGRESS_SHEETID = "progress sheet";
@@ -31,11 +31,11 @@ public class GoogleSheetData {
 	
 	private static final String DATE_FORMAT = "dd/MM/yyyy";
 
-	private static final int PLAN_SHEET_COLUMNS = 20;
+	private static final int PLAN_SHEET_COLUMNS = 11;
 	private static final int PLAN_SHEET_COLUMN_DATE = 1;
-	private static final int PLAN_SHEET_COLUMN_LAT = 18;
-	private static final int PLAN_SHEET_COLUMN_LONG = 19;
-	private static final int PLAN_SHEET_COLUMN_DISTANCE = 8;
+	private static final int PLAN_SHEET_COLUMN_LAT = 6;
+	private static final int PLAN_SHEET_COLUMN_LONG = 7;
+	private static final int PLAN_SHEET_COLUMN_DISTANCE = 11;
 
 	public ValueRange getPlannedSheet() throws BadDataException {
 		log.info("getPlannedSheet");
@@ -70,8 +70,6 @@ public class GoogleSheetData {
 				throw new NoDataException("valueRange empty");
 			} else {
 				Iterator<List<Object>> iterator = values.iterator();
-				iterator.next(); // skip first two rows
-				iterator.next();
 				while (iterator.hasNext()) {
 					List<Object> row = iterator.next();
 					if (row.size() >= PLAN_SHEET_COLUMNS) {
@@ -96,8 +94,6 @@ public class GoogleSheetData {
 				throw new NoDataException("valueRange empty");
 			} else {
 				Iterator<List<Object>> iterator = values.iterator();
-				iterator.next(); // skip first two lines
-				iterator.next();
 				while (iterator.hasNext()) {
 					List<Object> row = iterator.next();
 					if (row.size() >= PLAN_SHEET_COLUMNS) {

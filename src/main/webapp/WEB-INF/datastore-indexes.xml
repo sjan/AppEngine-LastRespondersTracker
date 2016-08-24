@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<datastore-indexes autoGenerate="false">
+	<datastore-index kind="projectSpark-position" ancestor="false"
+		source="manual">
+		<property name="journeyId" direction="asc" />
+		<property name="dateTime" direction="asc" />
+	</datastore-index>
+	<datastore-index kind="projectSpark-position-resampled" ancestor="false"
+		source="manual">
+		<property name="journeyId" direction="asc" />
+		<property name="dateTime" direction="asc" />
+	</datastore-index>
+</datastore-indexes>
+    
+

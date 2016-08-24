@@ -1,32 +1,103 @@
-<html>
+
+<html lang="en">
 <head>
-	<link rel="stylesheet" type="text/css" href="css/tracker.css">
-	<link rel="stylesheet" href="font-awesome-4.6.3/css/font-awesome.min.css">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="description"
+	content="Team Last Responders: Project Spark Tracker from NY to Mumbai">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<title>Last Responders Tracker: NyToMumbai</title>
 
-  <script type="text/javascript"> 
-  	var routeCoordinates = [];
-  	var progressCoordinates = [];
-  	var map;
-  	var oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
-  	var JOURNEY_START_DATE = new Date(2016,7,24);
-	var TODAY = new Date();
-	var diffDay = Math.round((TODAY.getTime() - JOURNEY_START_DATE.getTime())/(oneDay));
-	var MAP_PIN = 'M0-48c-9.8 0-17.7 7.8-17.7 17.4 0 15.5 17.7 30.6 17.7 30.6s17.7-15.4 17.7-30.6c0-9.6-7.9-17.4-17.7-17.4z';
-	var daycount = 0;
-	var PROGRESS_COLOR = "#2196F3";
-	var PLAN_COLOR = "#616161";
-	var planPosition ; 
-	var nowPosition ;
+<!-- Page styles -->
+<link rel="stylesheet"
+	href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+<link rel="stylesheet"
+	href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="mdl/material.min.css">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+	<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+		<div
+			class="android-header mdl-layout__header mdl-layout__header--waterfall"
+			style="z-index: 999; background: #2196F3">
+			<div class="mdl-layout__header-row">
+				<span class="mdl-layout-title">Last Responders Tracker:
+					#NyToMumbai</span>
+				<div class="android-header-spacer mdl-layout-spacer"></div>
+				<span id="infoLabelSubTitle" class="mdl-layout__title">Day X</span>
+			</div>
+			<div class="mdl-layout__header-row">
+				<span class="mdl-layout__title"><span id="infoProgressIcon"><i
+						class="material-icons">place</i></span>Progress 0.00 miles</span>
+				<div class="android-header-spacer mdl-layout-spacer"></div>
+				<span class="mdl-layout__title"><span id="infoPlannedIcon"><i
+						class="material-icons">place</i></span>Plan 0.00 miles</span>
+			<button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored mdl-shadow--4dp mdl-color--accent" id="add" data-upgraded=",MaterialButton,MaterialRipple" style="margin-top: 36px;">
+            <i class="material-icons" role="presentation">card_giftcard</i>
+            <span class="visuallyhidden">Add</span>
+          <span class="mdl-button__ripple-container"><span class="mdl-ripple is-animating" style="width: 160.392px; height: 160.392px; transform: translate(-50%, -50%) translate(37px, 31px);"></span></span></button>
+						
+			</div>
+		</div>
+
+		<div class="android-content mdl-layout__content">
+			<div id="googleMap" style="width: 100vw; height: 100vh;"></div>
+		</div>
+	</div>
+	<script type="text/javascript"> 
+	  	var routeCoordinates = [];
+	  	var progressCoordinates = [];
+	  	var map;
+	  	var oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
+	  	var JOURNEY_START_DATE = new Date(2016,7,25);
+		var TODAY = new Date();
+		var diffDay = Math.round((TODAY.getTime() - JOURNEY_START_DATE.getTime())/(oneDay));
+		var MAP_PIN = 'M0-48c-9.8 0-17.7 7.8-17.7 17.4 0 15.5 17.7 30.6 17.7 30.6s17.7-15.4 17.7-30.6c0-9.6-7.9-17.4-17.7-17.4z';
+		var daycount = 0;
+		var PROGRESS_COLOR = "#2196F3";
+		var PLAN_COLOR = "#616161";
+		var planPosition ; 
+		var nowPosition ;
+		
+		if(diffDay < 0) {
+			daycount = 0;
+		} else {
+			daycount = diffDay;
+		}
+	</script>
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+	<script>
+      function initMap() {
+        var mapProp = {
+          center:new google.maps.LatLng(51.508742,-0.120850),
+          zoom:4,
+          mapTypeId:google.maps.MapTypeId.ROADMAP,
+          mapTypeControl: false,
+          streetViewControl: false
+        };
+        map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
+      }
+      
+       if(diffDay < 0) {
+		$('#infoLabelSubTitle').text(-diffDay  + " Days until launch");
+	  } else {
+		$('#infoLabelSubTitle').text("Day " + daycount);				
+	  }
 	
-	if(diffDay < 0) {
-		daycount = 0;
-	} else {
-		daycount = diffDay;
-	}
+	$("#infoProgressIcon").click(function(){
+        map.panTo(nowPosition);
+    });
+    
+    $("#infoPlannedIcon").click(function(){
+        map.panTo(planPosition);
+    });
+    </script>
 
-  </script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-  <script type="text/javascript">
+	<script type="text/javascript">
     $(document).ready(function() {
       $.ajax({
           type: "GET",
@@ -86,6 +157,7 @@
               strokeOpacity: 1,
               strokeWeight: 4
             });
+            progressPath.setZIndex(1);
             progressPath.setMap(map);
           },
           error: function(data) {
@@ -126,7 +198,7 @@
           crossDomain:"true",
           url: "/rest/journey/plannedStatus",
           success: function(data){
-          	$('#infoPlannedTitle').text("Plan " + data["distance"].toFixed(2) + " miles");
+          	//$('#infoPlannedTitle').text("Plan " + data["distance"].toFixed(2) + " miles");
           },
           error: function(data) {
             console.log("fail function " + JSON.stringify(data));
@@ -139,7 +211,7 @@
           crossDomain:"true",
           url: "/rest/journey/progressStatus",
           success: function(data){
-            $('#infoProgressTitle').html("Progress " + data["distance"].toFixed(2) + " miles");
+            //$('#infoProgressTitle').html("Progress " + data["distance"].toFixed(2) + " miles");
           },
           error: function(data) {
             console.log("fail function " + JSON.stringify(data));
@@ -148,47 +220,8 @@
    }
  )
  </script>
-</head>
-
-  <body>
-  <div id="wrapper">
-  	<div id="infoContainer">
-  		<div id="infoLabel">
-  		  	<span id="infoLabelTitle">Project Spark: </span>
-  			<span id="infoLabelSubTitle">Day X</span>
-  		</div>
-  		<div id="infoProgress" ><span id="infoProgressIcon"><i class="fa fa-circle"></i></span><span id="infoProgressTitle">Progress 0.00 miles</span></div>
-  		<div id="infoPlanned"><span id="infoPlannedIcon"><i class="fa fa-circle"></i></span><span id="infoPlannedTitle">Plan 0.00 miles</span></div>  			
-  	</div>
-  	<div id="googleMap" style="width: 100vw; height: 100vh;"></div>
-    </div>
-    <script>
-      function initMap() {
-        var mapProp = {
-          center:new google.maps.LatLng(51.508742,-0.120850),
-          zoom:4,
-          mapTypeId:google.maps.MapTypeId.ROADMAP,
-          mapTypeControl: false,
-          streetViewControl: false
-        };
-        map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
-      }
-      
-      if(diffDay < 0) {
-		$('#infoLabelSubTitle').text(-diffDay  + " Days until launch");
-	  } else {
-		$('#infoLabelSubTitle').text("Day " + daycount);				
-	  }
-	
-	$("#infoProgressIcon").click(function(){
-        map.panTo(nowPosition);
-    });
-    
-    $("#infoPlannedIcon").click(function(){
-        map.panTo(planPosition);
-    });
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCciPUBCbLiRVE6Vf_TbVJrtVUSLvtSvuU&callback=initMap"></script>
-    
-  </body>
+	<script
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCciPUBCbLiRVE6Vf_TbVJrtVUSLvtSvuU&callback=initMap"></script>
+	<script src="mdl/material.min.js"></script>
+</body>
 </html>

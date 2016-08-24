@@ -3,7 +3,7 @@
 	<cron>
 		<url>/rest/journey/pollDatasource</url>
 		<description>poll</description>
-		<schedule>every 10 minutes</schedule>
+		<schedule>every 5 minutes</schedule>
 	</cron>
 
 	<cron>
