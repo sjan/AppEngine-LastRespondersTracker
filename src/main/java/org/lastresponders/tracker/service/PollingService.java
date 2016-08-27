@@ -152,4 +152,9 @@ public class PollingService {
 	public void refreshPlannedRoute(String journeyId) throws BadDataException {
 		dataCache.refreshPlannedRouteData(journeyId);
 	}
+
+	public void refreshProgressRoute(String journeyId) {
+		dataCache.refreshProgressRoute(journeyId);
+		
+	}
 }

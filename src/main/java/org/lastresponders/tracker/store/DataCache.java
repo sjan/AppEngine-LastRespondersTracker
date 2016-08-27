@@ -90,6 +90,10 @@ public class DataCache {
 			valueRange = googleSheetData.getPlannedSheet();
 		
 		}
+
+		public void refreshProgressRoute(String journeyId) {
+			resampledRoute = null;			
+		}
 		
 
 }

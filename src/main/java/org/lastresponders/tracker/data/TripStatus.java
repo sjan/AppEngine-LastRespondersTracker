@@ -6,6 +6,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class TripStatus{
+	private Double latitude;
+	private Double longitude;
 	private Double distance;
 	private Date dateTime;
 	
@@ -35,5 +37,21 @@ public class TripStatus{
 		this.dateTime = date;
 		this.distance = distance;
 		
+	}
+
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
 	}
 }

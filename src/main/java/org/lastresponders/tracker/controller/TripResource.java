@@ -93,4 +93,13 @@ public class TripResource {
 		pollingService.pollResampleRoute(journeyId);
 		return "ok";
 	}
+	
+
+	@GET
+	@Path("/routeCacheRefresh")
+	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	public String refreshRoute() throws BadDataException {
+		pollingService.refreshProgressRoute(journeyId);
+		return "ok";
+	}
 }
