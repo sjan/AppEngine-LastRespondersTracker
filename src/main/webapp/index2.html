@@ -29,14 +29,16 @@
 				<span id="infoLabelSubTitle" class="mdl-layout__title">Day X</span>
 			</div>
 			<div class="mdl-layout__header-row">
-				<span class="mdl-layout__title" id="infoProgressTitle"><span id="infoProgressIcon"><i
-						class="material-icons">place</i></span>Progress </span><span id="infoProgressSpinner" class="spinner-spacing mdl-spinner mdl-js-spinner is-active"></span>
+				<span class="mdl-layout__title"><span id="infoProgressIcon"><i class="material-icons">place</i></span>Progress 0.00 miles</span>
 				<div class="android-header-spacer mdl-layout-spacer"></div>
-				<span class="mdl-layout__title" id="infoPlannedTitle"><span id="infoPlannedIcon"><i
-						class="material-icons">place</i></span>Plan </span><span id="infoPlannedSpinner" class="spinner-spacing mdl-spinner mdl-js-spinner is-active"></span>
+				<span class="mdl-layout__title"><span id="infoPlannedIcon"><i class="material-icons">place</i></span>Plan 0.00 miles</span>
 			</div>
+			<div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+      			<span class="mdl-layout__title"><span id="infoProgressIcon"><i class="material-icons">place</i></span>Progress 0.00 miles</span>
+				<span class="mdl-layout__title"><span id="infoPlannedIcon"><i class="material-icons">place</i></span>Plan 0.00 miles</span>		    
+    		</div>
 		</div>
-		
+
 		<div class="android-content mdl-layout__content">
 			<div id="googleMap" style="width: 100vw; height: 100vh;"></div>
 		</div>
@@ -60,10 +62,6 @@
 			daycount = 0;
 		} else {
 			daycount = diffDay;
-		}
-		
-		function isToday(date) {
-			return(moment().utc().isSame(moment().format(date), 'day'));
 		}
 	</script>
 	<script
@@ -105,7 +103,7 @@
           url: "/rest/journey/plannedRoute",
           success: function(array){
             for(i = 0;i< array.length ; i++) {
-              if(isToday(array[i].dateTime)) {
+              if(i === daycount) {
                  planPosition = {lat : parseFloat(array[i].latitude), lng : parseFloat(array[i].longitude) };
               }
               routeCoordinates.push({lat : parseFloat(array[i].latitude), lng : parseFloat(array[i].longitude) });
@@ -154,10 +152,9 @@
               geodesic: true,
               strokeColor: PROGRESS_COLOR,
               strokeOpacity: 1,
-              strokeWeight: 4,
-              zIndex: 1
-              
+              strokeWeight: 4
             });
+            progressPath.setZIndex(1);
             progressPath.setMap(map);
           },
           error: function(data) {
@@ -198,8 +195,7 @@
           crossDomain:"true",
           url: "/rest/journey/plannedStatus",
           success: function(data){
-          	$('#infoPlannedTitle').html("<span id=infoPlannedIcon><i class=material-icons>place</i></span>Plan " + data["distance"].toFixed(0) + " mi");
-          	$('#infoPlannedSpinner').remove();
+          	//$('#infoPlannedTitle').text("Plan " + data["distance"].toFixed(2) + " miles");
           },
           error: function(data) {
             console.log("fail function " + JSON.stringify(data));
@@ -212,9 +208,7 @@
           crossDomain:"true",
           url: "/rest/journey/progressStatus",
           success: function(data){
-            $('#infoProgressTitle').html("<span id=infoProgressIcon><i class=material-icons>place</i></span>Progress " + data["distance"].toFixed(0) + " mi");
-            $('#infoProgressSpinner').remove();
-            
+            //$('#infoProgressTitle').html("Progress " + data["distance"].toFixed(2) + " miles");
           },
           error: function(data) {
             console.log("fail function " + JSON.stringify(data));
@@ -226,6 +220,5 @@
 	<script
 		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCciPUBCbLiRVE6Vf_TbVJrtVUSLvtSvuU&callback=initMap"></script>
 	<script src="mdl/material.min.js"></script>
-		<script src="moment/moment.min.js"></script>
 </body>
 </html>
